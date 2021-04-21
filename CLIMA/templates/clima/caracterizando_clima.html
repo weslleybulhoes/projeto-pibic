@@ -1,0 +1,183 @@
+
+
+{% extends 'base.html' %}
+{% load static %}
+{% load filtro_select %}
+
+{% block titulo %} CLIMA | {{titulo}} {% endblock %}
+
+{% block 'conteudo' %}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/css/bootstrap-select.min.css">
+
+<html lang="en">
+  <body style="background: beige">
+        <div class="header_menu text-center" data-spy="affix" data-offset-top="50" id="nav">
+                    <div class="container">
+                        <nav class="navbar navbar-default zero_mp ">
+                            <!-- Brand and toggle get grouped for better mobile display -->
+                            <div class="navbar-header">
+                                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                                    <span class="sr-only">Toggle navigation</span>
+                                    <span class="icon-bar"></span>
+                                    <span class="icon-bar"></span>
+                                    <span class="icon-bar"></span>
+                                </button>
+                                <a class="navbar-brand custom_navbar-brand" href="#"><img src="{% static 'img/logooo.png' %}" alt=""></a>
+                            </div>
+                            <!--End of navbar-header-->
+
+                            <!-- Collect the nav links, forms, and other content for toggling -->
+                            <div class="collapse navbar-collapse zero_mp" id="bs-example-navbar-collapse-1">
+                                <ul class="nav navbar-nav navbar-right main_menu">
+                                    <li class="active"><a href="#header">Inicio <span class="sr-only">(current)</span></a></li>
+                                    <li><a href="#welcome">Fundamentação Teórica</a></li>
+                                    <li><a href="#portfolio">Consultar Dados</a></li>
+                                    <li><a href="#counter">Histórico</a></li>
+                                    <li><a href="#event">Atualização</a></li>
+                                    <li><a href="#testimonial">Referências</a></li>
+                                    <li><a href="#blog">Teste</a></li>
+                                    <li><a href="#contact">Contato</a></li>
+                                </ul>
+                            </div>
+                            <!-- /.navbar-collapse -->
+                        </nav>
+                        <!--End of nav-->
+                    </div>
+                    <!--End of container-->
+                </div>
+                <!--End of header menu-->
+            </div>
+            <!--end of header area-->
+        </section>
+        <!--End of Hedaer Section-->
+        <br>
+
+        <div class="dados_grafico">
+            <form method="GET" action="{% url 'clima' %}" >
+                <select id="arquivo" name="arquivo" onchange="teste()">
+                    {% for arquivo in todos_arq %}
+                    <option id = "teste" value="{{arquivo}}">{{ arquivo|concatenando_string}}</option>
+                    {% endfor %}
+                </select>
+                <select name="tipo_dado" id="tipo">
+                    {% for coluna in sufixo %}
+                    <option value="{{coluna}}">{{coluna|removendo_string}}</option>
+                    {% endfor %}
+                </select>
+                <br><br>
+
+                <input type="date" name="data_inicial" id="data_inicial"
+                       value={{data_inicial_filtro}} min={{data_inicial}}
+                       max="{{data_final}}" onChange="alterando_data()"
+                >
+                <input type="date" name="data_final" id="data_final"
+                           value={{data_final_filtro}} min={{data_inicial}}
+                           max="{{data_final}}"
+                >
+
+
+                <button type="submit" onclick="Modificando_min(); "> Plotar Gráfico </button>
+            </form>
+        </div>
+
+        <br>
+        <!-- Highcharts display -->
+        <div style="text-align: center;">
+            <h4> Local da Estação: {{titulo}} </h4>
+        </div>
+        <div class="borda_grafico" id="container" style="min-width: 310px; height: 400px; margin: 0 auto">
+        </div>
+
+        {% if diagrama %}
+            <div>
+                {{ diagrama|safe }}
+            </div>
+        {% endif %}
+
+
+
+    <!-- Chartjs libraries -->
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/highcharts-more.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/modules/export-data.js"></script>
+    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+
+    <script src="{% static 'js/gerar_grafico.js' %}"></script>
+
+
+    <script>
+    if ("{{requisicao}}"=="True") {
+        window.onload = gera_graficos
+    }
+
+    function gera_graficos() {
+          var ranges = {{categories}},
+          coluna = "{{colunas|removendo_string}}",
+          averages = {{values}}
+
+          Highcharts.chart('container', {
+        chart: {
+                    zoomType: 'xy'
+          },
+
+        title: {
+            text: coluna
+        },
+
+        xAxis: {
+            type: 'datetime',
+            accessibility: {
+                rangeDescription: 'string'
+            }
+        },
+
+        yAxis: {
+            title: {
+                text: null
+            }
+        },
+
+        tooltip: {
+            crosshairs: true,
+            shared: true,
+            valueSuffix: ''
+        },
+
+        series: [{
+            name: 'Média',
+            data: averages,
+            zIndex: 1,
+            color: Highcharts.getOptions().colors[1],
+            lineWidth: 2,
+            marker: {
+                fillColor: 'white',
+                lineWidth: 2,
+                lineColor: Highcharts.getOptions().colors[5],
+            }
+        }, {
+            name: '[Mínima-Máxima]',
+            data: ranges,
+            type: 'arearange',
+            lineWidth: 1,
+            linkedTo: ':previous',
+            color: Highcharts.getOptions().colors[5],
+            fillOpacity: 0.3,
+            zIndex: 0,
+            marker: {
+                enabled: false
+            }
+        }]
+    });
+}
+    </script>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
+
+  </body>
+
+</html>
+
+{% endblock %}
